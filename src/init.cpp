@@ -47,8 +47,11 @@ auto Initialization::init_main() -> std::optional<Interface> {
      ((void **)(*(void**)m_steam_user))[3] --> get third pointer to void (actually a function pointer)
     &((void **)(*(void**)m_steam_user))[3] --> get address of third pointer
   */
-  auto pfn = &((void **)(*(void **)m_steam_user))[3];
-
+  
+  //auto pfn = &((void **)(*(void **)m_steam_user))[3];
+  
+  auto pfn = get_init_game_connec_func();
+  
   handles.init_game_connect = reinterpret_cast<sdk::InitiateGameConnectionFunc*>(pfn);
 
   // fix for protected memory region
@@ -120,6 +123,11 @@ auto Initialization::init_modules() -> bool {
     return false;
 
   return true;
+}
+
+auto Initialization::get_init_game_connec_func() const -> void** {
+  auto p_funcs = Util::get_vtable_pfuncs(m_steam_user);
+  return &p_funcs[3];
 }
 
 } // namespace  sip

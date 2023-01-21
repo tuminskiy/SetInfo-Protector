@@ -31,6 +31,8 @@ private:
   SigHelper m_engine_sig;
 
   auto init_modules() -> bool;
+
+  auto get_init_game_connec_func() const -> void**;
 };
 
 } // namespace sip
