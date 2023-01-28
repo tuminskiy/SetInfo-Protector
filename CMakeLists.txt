@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(sip)
 
+add_subdirectory(thirdparty/json)
+
 add_library(${PROJECT_NAME} SHARED)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -22,4 +24,5 @@ set(SRC
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
+target_link_libraries(${PROJECT_NAME} nlohmann_json)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
