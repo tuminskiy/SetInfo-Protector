@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Windows.h>
+#include "sip/inject/sighelper.hpp"
+#include "sip/inject/interface.hpp"
+
 #include <optional>
 
-#include "sip/sighelper.hpp"
-#include "sip/interface.hpp"
+#include <Windows.h>
 
-namespace sip {
+namespace sip::inject {
 
 class Initialization {
 public:
@@ -16,7 +17,7 @@ public:
   auto init_main() -> std::optional<Interface>;
 
 private:
-  void* m_game_window;
+  //void* m_game_window;
   int m_game_pid;
   
   HMODULE m_hardware_dll;
@@ -31,8 +32,6 @@ private:
   SigHelper m_engine_sig;
 
   auto init_modules() -> bool;
-
-  auto get_init_game_connec_func() const -> void**;
 };
 
-} // namespace sip
+} // namespace sip::inject

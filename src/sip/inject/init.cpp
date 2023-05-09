@@ -1,20 +1,23 @@
-#include "sip/init.hpp"
-#include "sip/const.hpp"
-#include "sip/util.hpp"
+#include "sip/inject/init.hpp"
+#include "sip/inject/const.hpp"
+#include "sip/inject/util.hpp"
+
+#include <thread>
 
 #include <process.h>
 
-namespace sip {
+namespace sip::inject {
 
 Initialization::Initialization()
-  : m_game_window(nullptr), m_game_pid(0)
+  : //m_game_window(nullptr), 
+  m_game_pid(0)
   , m_hardware_dll(nullptr), m_client_dll(nullptr), m_steam_api_dll(nullptr), m_steam_user(nullptr)
   , m_hardware_size(0), m_client_size(0), m_steam_api_size(0)
   , m_engine_sig(ENGINE_OFFSET, ENGINE_SIG)
 { }
 
 auto Initialization::init_window() -> bool {
-  m_game_window = GetModuleHandle(nullptr);
+  const auto m_game_window = GetModuleHandle(nullptr);
 
   if (!m_game_window)
     return false;
@@ -29,30 +32,19 @@ auto Initialization::init_window() -> bool {
 
 auto Initialization::init_main() -> std::optional<Interface> {
   if (!init_modules())
-    return std::nullopt;
-  
+    return std::nullopt;\
+
   Interface handles;
 
-  handles.engine = reinterpret_cast<sdk::cl_enginefunc_t*>(
-    Util::find_str_ref(m_client_dll, m_client_size, m_engine_sig)
+  handles.engine = reinterpret_cast<sdk::cl_enginefunc_t*>(    
+    util::find_str_ref(m_client_dll, m_client_size, m_engine_sig)
   );
 
-  // get pointer to InitiateGameConnection method address in virtual table of ISteamUser interface.
-
-  /*
-                         m_steam_user      --> pointer to ISteamUser class
-                 (void**)m_steam_user      --> represent as array of pointers (VERY DIRTY type erasure)
-                *(void**)m_steam_user      --> get pointer to vtable (in msvc the vtable pointer comes first in the class)
-       (void**)(*(void**)m_steam_user)     --> represent as array of pointers (actually function pointers)
-     ((void **)(*(void**)m_steam_user))[3] --> get third pointer to void (actually a function pointer)
-    &((void **)(*(void**)m_steam_user))[3] --> get address of third pointer
-  */
-  
-  //auto pfn = &((void **)(*(void **)m_steam_user))[3];
-  
-  auto pfn = get_init_game_connec_func();
-  
+  auto pfn = sdk::get_init_game_connect_func(m_steam_user);  
   handles.init_game_connect = reinterpret_cast<sdk::InitiateGameConnectionFunc*>(pfn);
+
+  pfn = sdk::get_term_game_connect_func(m_steam_user);
+  handles.term_game_connect = reinterpret_cast<sdk::TerminateGameConnectionFunc*>(pfn);
 
   // fix for protected memory region
   RtlCopyMemory(&handles.engine, handles.engine, sizeof(handles.engine));
@@ -86,7 +78,7 @@ auto Initialization::init_modules() -> bool {
   // failed to grab any of the module types
   if (!m_hardware_dll)
     return false;
-  
+
   m_hardware_size = get_module_size(m_hardware_dll);
 
   // if we fail to grab the module size
@@ -125,9 +117,6 @@ auto Initialization::init_modules() -> bool {
   return true;
 }
 
-auto Initialization::get_init_game_connec_func() const -> void** {
-  auto p_funcs = Util::get_vtable_pfuncs(m_steam_user);
-  return &p_funcs[3];
-}
 
-} // namespace  sip
+
+} // namespace sip::inject

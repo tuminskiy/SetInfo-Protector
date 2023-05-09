@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-namespace sip {
+namespace sip::inject {
 
 class SigHelper {
 public:
@@ -19,4 +19,4 @@ private:
   std::string_view m_sig;
 };
 
-} // namespace sip
+} // namespace sip::inject

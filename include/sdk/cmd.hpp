@@ -3,6 +3,8 @@
 // this file is included by both the engine and the client-dll,
 // so make sure engine declarations aren't done twice
 
+#include <Windows.h>
+
 namespace sdk {
 
 typedef int (*pfnUserMsgHook)(const char*, int, void*);
