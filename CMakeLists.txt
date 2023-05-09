@@ -18,9 +18,13 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 set(SRC
   src/main.cpp
-  src/init.cpp
-  src/sighelper.cpp
-  src/util.cpp
+  src/sip/inject/init.cpp
+  src/sip/inject/sighelper.cpp
+  src/sip/inject/util.cpp
+  src/sip/inject/interface.cpp
+  src/sip/settings/config.cpp
+  src/sip/settings/address.cpp
+  src/sdk/steamuser.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/)

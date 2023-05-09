@@ -1,0 +1,23 @@
+{
+  "servers": [
+    {
+      "address": {
+        "ip": "192.168.0.1",
+        "port": 27015
+      },
+      "infos": [
+        { "_pw": "test" },
+        { "_another_field": "example"}
+      ]
+    },
+    {
+      "address": {
+        "ip": "127.0.0.1",
+        "port": 27014
+      },
+      "infos": [
+        { "_pw": "zxc" }
+      ]
+    }
+  ]
+}
