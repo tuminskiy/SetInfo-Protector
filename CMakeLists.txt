@@ -19,13 +19,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 set(SRC
   src/main.cpp
   src/sip/inject/init.cpp
-  src/sip/inject/sighelper.cpp
   src/sip/inject/util.cpp
   src/sip/inject/interface.cpp
   src/sip/settings/config.cpp
   src/sip/settings/address.cpp
   src/sdk/steamuser.cpp
 )
+
+set(CMAKE_GENERATOR_PLATFORM Win32)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/)
 target_link_libraries(${PROJECT_NAME} nlohmann_json)

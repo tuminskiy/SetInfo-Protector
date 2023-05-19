@@ -1,20 +1,13 @@
 #include "sip/inject/interface.hpp"
 
-#include <sstream>
-
 namespace sip::inject {
 
-auto Interface::console_print(std::string_view sv) -> void {
-  engine->pfnConsolePrint(sv.data());
+auto Interface::set_info(std::string_view key, std::string_view value) -> void {
+  engine->PlayerInfo_SetValueForKey(key.data(), value.data());
 }
 
-auto Interface::set_info(std::string_view key, std::string_view value) -> void {
-  std::ostringstream oss;
-  oss << "setinfo \"" << key << "\" \"" << value << "\"";
-
-  const auto str = oss.str();
-
-  engine->pfnClientCmd(str.data());
+auto Interface::set_filterstuffcmd(bool state) -> void {
+  engine->Cvar_Set("cl_filterstuffcmd", state ? "1" : "0");
 }
 
 } // namespace sip::inject

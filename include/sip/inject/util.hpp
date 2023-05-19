@@ -1,13 +1,11 @@
 #pragma once
 
-#include "sip/inject/sighelper.hpp"
-
-#include <Windows.h>
+#include <string>
 
 namespace sip::inject::util {
 
-auto find_str_ref(HMODULE hmodule, uintptr_t size, const SigHelper& sig) -> uintptr_t;
-
 auto get_vtable_pfuncs(void* p_obj) -> void**;
+
+auto get_current_time() -> std::string;
 
 } // namespace sip::inject::util

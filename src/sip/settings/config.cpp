@@ -17,14 +17,17 @@ auto parse_config(const std::filesystem::path& path) -> Config {
   return json.at(CONFIG_FIELD).get<Config>();
 }
 
-auto get_info_by_address(const Config& config, const Address& address) -> std::vector<Info> {
+auto get_server_by_address(const Config& config, const Address& address) -> std::optional<Server> {
   const auto func = [&address](const Server& server) {
     return server.address == address;
   };
 
   const auto it = std::find_if(std::cbegin(config), std::cend(config), func);
 
-  return it != std::cend(config) ? it->infos : std::vector<Info>{};
+  if (it != std::cend(config))
+    return *it;
+  
+  return std::nullopt;
 }
 
 auto get_address_from_node(uint32_t unIPServer, std::uint16_t usPortServer) -> Address

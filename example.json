@@ -17,7 +17,8 @@
       },
       "infos": [
         { "_pw": "zxc" }
-      ]
+      ],
+      "filterstruffcmd": false
     }
   ]
 }

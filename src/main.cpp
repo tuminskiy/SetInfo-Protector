@@ -1,12 +1,13 @@
-#include <Windows.h>
-#include <thread>
 #include "sip/inject/init.hpp"
 #include "sip/inject/util.hpp"
 #include "sip/settings/config.hpp"
 
+#include <thread>
+#include <fstream>
+
 #include <nlohmann/json.hpp>
 
-#include <fstream>
+#include <Windows.h>
 
 sip::inject::Initialization g_init;
 sip::inject::Interface g_handles;
@@ -32,11 +33,13 @@ auto overwrite_term_game_connection() -> void;
 auto __stdcall main_thread(void *hmodule) -> unsigned long {
   while (!g_init.init_window()) // wait until the game window is valid
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  
+
   const auto handles = g_init.init_main();
+  std::ofstream fout("sip.log", std::ios::app);
 
   if (!handles.has_value()) {
-    // TODO
+    fout << "[" << sip::inject::util::get_current_time() << "] "
+         << "Failed handle modules" << std::endl;
     return 0;
   }
 
@@ -45,15 +48,13 @@ auto __stdcall main_thread(void *hmodule) -> unsigned long {
   overwrite_init_game_connection();
   overwrite_term_game_connection();
 
-  g_handles.console_print("SetInfoProtecter by Eneu\n");
-
   try
   {
-    g_config = sip::settings::parse_config("test.json");
+    g_config = sip::settings::parse_config("sip.json");
   } catch (const std::exception& e) {
-    g_handles.console_print("Failed parse SIP config:\n");
-    g_handles.console_print(e.what());
-    g_handles.console_print("\n");
+    fout << "[" << sip::inject::util::get_current_time() << "] "
+         << "Parse config exception:\n"
+         << e.what() << std::endl;
   }
 
   return 0;
@@ -65,33 +66,35 @@ auto __stdcall DllMain(HMODULE hmodule, DWORD reason, LPVOID reserved) -> int {
 
   switch (reason) {
     case DLL_PROCESS_ATTACH: {
-      // dont crash, but doesnt work :)
-      // std::thread t([] { main_thread(nullptr); });
-      // t.detach();
-
-      HANDLE thread_instance = CreateThread(nullptr, NULL, main_thread, hmodule, NULL, nullptr);
-
-      if (thread_instance)
-        CloseHandle(thread_instance);
-      else
-        return TRUE;
-
+      CreateThread(nullptr, NULL, main_thread, hmodule, 0, nullptr);
     } break;
   }
 
   return TRUE;
 }
 
+extern "C" __declspec(dllexport)
+auto  __stdcall RIB_Main(LPVOID lp, LPVOID lp2, LPVOID lp3, LPVOID lp4, LPVOID lp5 ) -> BOOL {
+  return TRUE;
+}
 
 auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *pData, int cbMaxData,
   long long steamID, uint32_t unIPServer, uint16_t usPortServer, bool bSecure) -> int {
 
   const auto address = sip::settings::get_address_from_node(unIPServer, usPortServer);
 
-  const auto infos = sip::settings::get_info_by_address(g_config, address);
+  g_handles.console_print("[SIP] Connecting to %s\n", sip::settings::to_string(address).data());
 
-  for (const auto& info : infos) {
-    g_handles.set_info(info.key, info.value);
+  const auto server = sip::settings::get_server_by_address(g_config, address);
+
+  if (server.has_value()) {
+    const auto infos = server.value().infos;
+
+    for (const auto& info : infos) {
+      g_handles.set_info(info.key, info.value);
+    }
+    
+    g_handles.set_filterstuffcmd(server.value().filterstruffcmd);
   }
 
   return g_old_init_game_connect(pAuthBlob, cbMaxAuthBlob, pData, cbMaxData, steamID, unIPServer, usPortServer, bSecure);
@@ -99,11 +102,21 @@ auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *p
 
 auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, uint32_t unIPServer, uint16_t usPortServer) -> void {
   const auto address = sip::settings::get_address_from_node(unIPServer, usPortServer);
-  const auto infos = sip::settings::get_info_by_address(g_config, address);
 
-  for (const auto& info : infos) {
-    g_handles.set_info(info.key, "");
+  g_handles.console_print("[SIP] Disconnecting from %s\n", sip::settings::to_string(address).data());
+
+  const auto server = sip::settings::get_server_by_address(g_config, address);
+
+  if (server.has_value()) {
+    const auto infos = server.value().infos;
+
+    for (const auto& info : infos) {
+      g_handles.set_info(info.key, "");
+    }
+
+    g_handles.set_filterstuffcmd(true);
   }
+  
 
   g_old_term_game_connect(pAuthBlob, cbMaxAuthBlob, unIPServer, usPortServer);
 }
