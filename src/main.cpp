@@ -16,6 +16,8 @@ sip::settings::Config g_config;
 sdk::InitiateGameConnectionFunc g_old_init_game_connect;
 sdk::TerminateGameConnectionFunc g_old_term_game_connect;
 
+std::ofstream fout_log("sip.log", std::ios::app);
+
 auto __stdcall DllMain(HMODULE hmodule, DWORD reason, LPVOID reserved) -> int;
 
 
@@ -29,17 +31,20 @@ auto overwrite_init_game_connection() -> void;
 
 auto overwrite_term_game_connection() -> void;
 
+auto add_reload_config_cmd() -> void;
+
+auto load_config() -> void;
+
 
 auto __stdcall main_thread(void *hmodule) -> unsigned long {
   while (!g_init.init_window()) // wait until the game window is valid
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   const auto handles = g_init.init_main();
-  std::ofstream fout("sip.log", std::ios::app);
 
   if (!handles.has_value()) {
-    fout << "[" << sip::inject::util::get_current_time() << "] "
-         << "Failed handle modules" << std::endl;
+    fout_log << "[" << sip::inject::util::get_current_time() << "] "
+             << "Failed handle modules" << std::endl;
     return 0;
   }
 
@@ -48,11 +53,15 @@ auto __stdcall main_thread(void *hmodule) -> unsigned long {
   overwrite_init_game_connection();
   overwrite_term_game_connection();
 
+  add_reload_config_cmd();
+
+  load_config();
+
   try
   {
     g_config = sip::settings::parse_config("sip.json");
   } catch (const std::exception& e) {
-    fout << "[" << sip::inject::util::get_current_time() << "] "
+    fout_log << "[" << sip::inject::util::get_current_time() << "] "
          << "Parse config exception:\n"
          << e.what() << std::endl;
   }
@@ -77,6 +86,7 @@ extern "C" __declspec(dllexport)
 auto  __stdcall RIB_Main(LPVOID lp, LPVOID lp2, LPVOID lp3, LPVOID lp4, LPVOID lp5 ) -> BOOL {
   return TRUE;
 }
+
 
 auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *pData, int cbMaxData,
   long long steamID, uint32_t unIPServer, uint16_t usPortServer, bool bSecure) -> int {
@@ -121,6 +131,7 @@ auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, ui
   g_old_term_game_connect(pAuthBlob, cbMaxAuthBlob, unIPServer, usPortServer);
 }
 
+
 auto overwrite_init_game_connection() -> void {
   g_old_init_game_connect = *(g_handles.init_game_connect);
 
@@ -137,4 +148,23 @@ auto overwrite_term_game_connection() -> void {
   VirtualProtect(g_handles.term_game_connect, sizeof(void*), PAGE_READWRITE, &old_protect);
   *(g_handles.term_game_connect) = terminate_game_connection;
   VirtualProtect(g_handles.term_game_connect, sizeof(void*), old_protect, nullptr);
+}
+
+
+auto add_reload_config_cmd() -> void {
+  g_handles.engine->pfnAddCommand("sip_reload_cfg", load_config);
+}
+
+
+auto load_config() -> void {
+  try
+  {
+    g_config = sip::settings::parse_config("sip.json");
+  } catch (const std::exception& e) {
+    fout_log << "[" << sip::inject::util::get_current_time() << "] "
+             << "Parse config exception:\n"
+             << e.what() << std::endl;
+
+    g_handles.console_print("[SIP] Config parsing error. See sip.log for details\n");
+  }
 }

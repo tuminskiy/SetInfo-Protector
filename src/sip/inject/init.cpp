@@ -40,14 +40,14 @@ auto Initialization::init_main() -> std::optional<Interface> {
   
   handles.engine = reinterpret_cast<sdk::cl_enginefunc_t*>((DWORD)(m_client_dll) + ENGINE_OFFSET);
 
+  // fix for protected memory region
+  RtlCopyMemory(&handles.engine, handles.engine, sizeof(handles.engine));
+
   auto pfn = sdk::get_init_game_connect_func(m_steam_user);  
   handles.init_game_connect = reinterpret_cast<sdk::InitiateGameConnectionFunc*>(pfn);
 
   pfn = sdk::get_term_game_connect_func(m_steam_user);
   handles.term_game_connect = reinterpret_cast<sdk::TerminateGameConnectionFunc*>(pfn);
-
-  // fix for protected memory region
-  RtlCopyMemory(&handles.engine, handles.engine, sizeof(handles.engine));
 
   return handles;
 }
