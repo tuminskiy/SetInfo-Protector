@@ -33,7 +33,10 @@ struct adl_serializer<sip::settings::Server> {
   template <class BasicJsonType>
   static auto from_json(const BasicJsonType& j, sip::settings::Server& server) -> void {
     j.at(SERVER_ADDRESS_FIELD).get_to(server.address);
-    j.at(SERVER_INFOS_FIELD).get_to(server.infos);
+
+    if (j.count(SERVER_INFOS_FIELD) == 0) {
+      j.at(SERVER_INFOS_FIELD).get_to(server.infos); 
+    }
     
     if (j.count(SERVER_FILTERSTUFFCMD) != 0) {
       j.at(SERVER_FILTERSTUFFCMD).get_to(server.filterstruffcmd);
