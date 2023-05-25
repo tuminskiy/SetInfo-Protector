@@ -26,12 +26,10 @@ auto get_current_time() -> std::string {
   const auto datetime = std::chrono::system_clock::to_time_t(timepoint);
   const auto tm = std::localtime(&datetime);
 
-  constexpr std::string_view format = "%Y.%m.%d %H:%M:%S";
+  constexpr auto buffer_size = std::size("yyyy.mm.dd HH:MM:SS");
+  char buffer[buffer_size];
 
-  std::string buffer;
-  buffer.resize(19); // Format: 2023.05.19 14:49:02
-
-  std::strftime(buffer.data(), buffer.size(), "%Y.%m.%d %H:%M:%S", tm);
+  std::strftime(buffer, buffer_size, "%Y.%m.%d %H:%M:%S", tm);
 
   return buffer;
 }

@@ -9,7 +9,7 @@
 
 #include <Windows.h>
 
-sip::inject::Initialization g_init;
+
 sip::inject::Interface g_handles;
 sip::settings::Config g_config;
 
@@ -37,10 +37,12 @@ auto load_config() -> void;
 
 
 auto __stdcall main_thread(void *hmodule) -> unsigned long {
-  while (!g_init.init_window()) // wait until the game window is valid
+  sip::inject::Initialization init;
+
+  while (!init.init_window()) // wait until the game window is valid
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  const auto handles = g_init.init_main();
+  const auto handles = init.init_main();
 
   if (!handles.has_value()) {
     fout_log << "[" << sip::inject::util::get_current_time() << "] "
@@ -56,15 +58,6 @@ auto __stdcall main_thread(void *hmodule) -> unsigned long {
   add_reload_config_cmd();
 
   load_config();
-
-  try
-  {
-    g_config = sip::settings::parse_config("sip.json");
-  } catch (const std::exception& e) {
-    fout_log << "[" << sip::inject::util::get_current_time() << "] "
-         << "Parse config exception:\n"
-         << e.what() << std::endl;
-  }
 
   return 0;
 }
@@ -160,6 +153,8 @@ auto load_config() -> void {
   try
   {
     g_config = sip::settings::parse_config("sip.json");
+    g_handles.console_print("[SIP] Config reloaded\n");
+
   } catch (const std::exception& e) {
     fout_log << "[" << sip::inject::util::get_current_time() << "] "
              << "Parse config exception:\n"
