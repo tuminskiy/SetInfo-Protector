@@ -4,7 +4,8 @@
 #include <ctime>
 #include <string_view>
 
-namespace sip::inject::util {
+namespace {
+
 
 auto get_vtable(void* p_obj) -> void* {
   // represent pointer to object as array of pointers
@@ -14,12 +15,19 @@ auto get_vtable(void* p_obj) -> void* {
   return *pointers;
 }
 
+
+} // anonymus namespace
+
+namespace sip::inject::util {
+
+
 auto get_vtable_pfuncs(void* p_obj) -> void** {
   auto p_vtable = get_vtable(p_obj);
 
   // represent pointer to vtable as pointers to function pointers
   return reinterpret_cast<void**>(p_vtable); 
 }
+
 
 auto get_current_time() -> std::string {
   const auto timepoint = std::chrono::system_clock::now();
@@ -33,5 +41,25 @@ auto get_current_time() -> std::string {
 
   return buffer;
 }
+
+
+auto get_address_from_node(uint32_t unIPServer, std::uint16_t usPortServer) -> sip::settings::Address {
+  constexpr uint32_t node_a_mask = 0b1111'1111'0000'0000'0000'0000'0000'0000;
+  constexpr uint32_t node_b_mask = 0b0000'0000'1111'1111'0000'0000'0000'0000;
+  constexpr uint32_t node_c_mask = 0b0000'0000'0000'0000'1111'1111'0000'0000;
+  constexpr uint32_t node_d_mask = 0b0000'0000'0000'0000'0000'0000'1111'1111;
+
+  const uint8_t node_a = (unIPServer & node_a_mask) >> 24;
+  const uint8_t node_b = (unIPServer & node_b_mask) >> 16;
+  const uint8_t node_c = (unIPServer & node_c_mask) >> 8;
+  const uint8_t node_d = (unIPServer & node_d_mask);
+
+  sip::settings::Address address;
+  address.ip = std::to_string(node_a) + "." + std::to_string(node_b) + "." + std::to_string(node_c) + "." + std::to_string(node_d);
+  address.port = usPortServer;
+
+  return address;
+}
+
 
 } // namespace sip::inject::util

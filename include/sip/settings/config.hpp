@@ -10,13 +10,23 @@
 
 namespace sip::settings {
 
-using Config = std::vector<Server>;
 
-auto parse_config(const std::filesystem::path& path) -> Config;
+class Config {
+  using Servers = std::vector<Server>;
 
-auto get_server_by_address(const Config& config, const Address& address) -> std::optional<Server>;
+  Servers m_servers;
 
-auto get_address_from_node(uint32_t unIPServer, std::uint16_t usPortServer) -> Address;
+public:
+  Config();
+  Config(Servers servers);
+
+  static auto create_config(const std::filesystem::path& path) -> Config;
+
+  auto get_server_by_address(const Address& address) const -> std::optional<Server>;
+};
+
+
+
 
 } // namespace sip::settings
 

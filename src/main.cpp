@@ -84,11 +84,11 @@ auto  __stdcall RIB_Main(LPVOID lp, LPVOID lp2, LPVOID lp3, LPVOID lp4, LPVOID l
 auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *pData, int cbMaxData,
   long long steamID, uint32_t unIPServer, uint16_t usPortServer, bool bSecure) -> int {
 
-  const auto address = sip::settings::get_address_from_node(unIPServer, usPortServer);
+  const auto address = sip::inject::util::get_address_from_node(unIPServer, usPortServer);
 
   g_handles.console_print("[SIP] Connecting to %s\n", sip::settings::to_string(address).data());
 
-  const auto server = sip::settings::get_server_by_address(g_config, address);
+  const auto server = g_config.get_server_by_address(address);
 
   if (server.has_value()) {
     const auto infos = server.value().infos;
@@ -104,11 +104,11 @@ auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *p
 }
 
 auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, uint32_t unIPServer, uint16_t usPortServer) -> void {
-  const auto address = sip::settings::get_address_from_node(unIPServer, usPortServer);
+  const auto address = sip::inject::util::get_address_from_node(unIPServer, usPortServer);
 
   g_handles.console_print("[SIP] Disconnecting from %s\n", sip::settings::to_string(address).data());
 
-  const auto server = sip::settings::get_server_by_address(g_config, address);
+  const auto server = g_config.get_server_by_address(address);
 
   if (server.has_value()) {
     const auto infos = server.value().infos;
@@ -152,7 +152,7 @@ auto add_reload_config_cmd() -> void {
 auto load_config() -> void {
   try
   {
-    g_config = sip::settings::parse_config("sip.json");
+    g_config = sip::settings::Config::create_config("sip.json");
     g_handles.console_print("[SIP] Config reloaded\n");
 
   } catch (const std::exception& e) {
