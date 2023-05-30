@@ -91,13 +91,20 @@ auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *p
   const auto server = g_config.get_server_by_address(address);
 
   if (server.has_value()) {
+    g_handles.console_print("[SIP] Use '%s' config\n", server.value().name.data());
+
     const auto infos = server.value().infos;
 
     for (const auto& info : infos) {
       g_handles.set_info(info.key, info.value);
     }
-    
-    g_handles.set_filterstuffcmd(server.value().filterstruffcmd);
+
+    const auto cvars = server.value().cvars;
+
+    for (const auto& cvar : cvars) {
+      if (cvar.value != "")
+        g_handles.set_cvar(cvar.name, cvar.value);
+    }
   }
 
   return g_old_init_game_connect(pAuthBlob, cbMaxAuthBlob, pData, cbMaxData, steamID, unIPServer, usPortServer, bSecure);
@@ -111,13 +118,19 @@ auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, ui
   const auto server = g_config.get_server_by_address(address);
 
   if (server.has_value()) {
+    g_handles.console_print("[SIP] Use '%s' config\n", server.value().name.data());
+
     const auto infos = server.value().infos;
 
     for (const auto& info : infos) {
       g_handles.set_info(info.key, "");
     }
 
-    g_handles.set_filterstuffcmd(true);
+    const auto cvars = server.value().cvars;
+
+    for (const auto& cvar : cvars) {
+      g_handles.set_cvar(cvar.name, cvar.default);
+    }
   }
   
 

@@ -17,7 +17,7 @@ struct Interface {
 
   auto set_info(std::string_view key, std::string_view value) -> void;
 
-  auto set_filterstuffcmd(bool state) -> void;
+  auto set_cvar(std::string_view name, std::string_view value) -> void;
 };
 
 

@@ -5,9 +5,16 @@
         "ip": "192.168.0.1",
         "port": 27015
       },
-      "infos": [
-        { "_pw": "test" },
-        { "_another_field": "example"}
+      "infos": {
+        "_pw": "test",
+        "_another_field": "example"
+      },
+      "cvars": [
+        {
+          "name": "cl_filterstuffcmd",
+          "value": "0",
+          "default": "1"
+        }
       ]
     },
     {
@@ -17,15 +24,25 @@
       },
       "infos": [
         { "_pw": "zxc" }
-      ],
-      "filterstruffcmd": false
+      ]
     },
     {
       "address": {
         "ip": "127.0.0.1",
         "port": 27004
       },
-      "filterstruffcmd": true
+      "cvars": [
+        {
+          "name": "cl_filterstuffcmd",
+          "value": "0",
+          "default": "1"
+        },
+        {
+          "name": "rate",
+          "value": null,
+          "default": "100000"
+        }
+      ]
     }
   ]
 }
