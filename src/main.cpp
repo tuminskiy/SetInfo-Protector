@@ -186,8 +186,7 @@ auto show_config() -> void {
   const auto& servers = g_config.get_servers();
 
   for (const auto& server : servers) {
-    g_handles.console_print("[SIP] Name: %s\n", server.name.data());
-    g_handles.console_print("[SIP] Address: %s:%d\n", server.address.ip.data(), server.address.port);
+    g_handles.console_print("[SIP] Server: %s (%s:%d)\n", server.name.data(), server.address.ip.data(), server.address.port);
     
     show_cvars(server);
     show_infos(server);
