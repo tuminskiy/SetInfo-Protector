@@ -40,5 +40,8 @@ auto Config::get_server_by_address(const Address& address) const -> std::optiona
   return std::nullopt;
 }
 
+auto Config::get_servers() const -> const Servers& {
+  return m_servers;
+}
 
 } // namespace sip::settings

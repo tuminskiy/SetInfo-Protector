@@ -23,6 +23,8 @@ public:
   static auto create_config(const std::filesystem::path& path) -> Config;
 
   auto get_server_by_address(const Address& address) const -> std::optional<Server>;
+
+  auto get_servers() const -> const Servers&;
 };
 
 

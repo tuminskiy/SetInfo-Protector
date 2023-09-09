@@ -28,13 +28,15 @@ auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, ui
 
 
 auto overwrite_init_game_connection() -> void;
-
 auto overwrite_term_game_connection() -> void;
 
-auto add_reload_config_cmd() -> void;
+auto add_sip_cvars_and_commands() -> void;
 
 auto load_config() -> void;
 
+auto show_config() -> void;
+auto show_cvars(const sip::settings::Server& server) -> void;
+auto show_infos(const sip::settings::Server& server) -> void;
 
 auto __stdcall main_thread(void *hmodule) -> unsigned long {
   sip::inject::Initialization init;
@@ -55,7 +57,7 @@ auto __stdcall main_thread(void *hmodule) -> unsigned long {
   overwrite_init_game_connection();
   overwrite_term_game_connection();
 
-  add_reload_config_cmd();
+  add_sip_cvars_and_commands();
 
   load_config();
 
@@ -157,8 +159,11 @@ auto overwrite_term_game_connection() -> void {
 }
 
 
-auto add_reload_config_cmd() -> void {
+auto add_sip_cvars_and_commands() -> void {
+  g_handles.engine->pfnRegisterVariable("sip_show_info_enabled", "0", 0);
+
   g_handles.engine->pfnAddCommand("sip_reload_cfg", load_config);
+  g_handles.engine->pfnAddCommand("sip_show_cfg", show_config);
 }
 
 
@@ -174,5 +179,38 @@ auto load_config() -> void {
              << e.what() << std::endl;
 
     g_handles.console_print("[SIP] Config parsing error. See sip.log for details\n");
+  }
+}
+
+auto show_config() -> void {
+  const auto& servers = g_config.get_servers();
+
+  for (const auto& server : servers) {
+    g_handles.console_print("[SIP] Name: %s\n", server.name.data());
+    g_handles.console_print("[SIP] Address: %s:%d\n", server.address.ip.data(), server.address.port);
+    
+    show_cvars(server);
+    show_infos(server);
+
+    g_handles.console_print("\n");
+  }
+}
+
+auto show_cvars(const sip::settings::Server& server) -> void {
+  for (const auto& cvar : server.cvars) {
+    g_handles.console_print("[SIP] Cvar \"%s %s\" (default: \"%s\")\n", cvar.name.data(), cvar.value.data(), cvar.default.data());
+  }
+}
+
+auto show_infos(const sip::settings::Server& server) -> void {
+  const std::string_view value = g_handles.engine->pfnGetCvarString("sip_show_info_enabled");
+
+  if (value != "1") {
+    g_handles.console_print("[SIP] Display \"Info\" disabled. To enable, set the value \"1\" for sip_show_info_enabled cvar\n");
+    return;
+  }
+
+  for (const auto& info : server.infos) {
+    g_handles.console_print("[SIP] Info \"%s\": \"%s\"\n", info.key.data(), info.value.data());;
   }
 }
