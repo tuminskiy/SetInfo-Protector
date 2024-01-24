@@ -113,6 +113,8 @@ auto __fastcall init_game_connection(void* pAuthBlob, int cbMaxAuthBlob, void *p
 }
 
 auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, uint32_t unIPServer, uint16_t usPortServer) -> void {
+  g_old_term_game_connect(pAuthBlob, cbMaxAuthBlob, unIPServer, usPortServer);
+  
   const auto address = sip::inject::util::get_address_from_node(unIPServer, usPortServer);
 
   g_handles.console_print("[SIP] Disconnecting from %s\n", sip::settings::to_string(address).data());
@@ -134,9 +136,6 @@ auto __fastcall terminate_game_connection(void* pAuthBlob, int cbMaxAuthBlob, ui
       g_handles.set_cvar(cvar.name, cvar.default);
     }
   }
-  
-
-  g_old_term_game_connect(pAuthBlob, cbMaxAuthBlob, unIPServer, usPortServer);
 }
 
 
